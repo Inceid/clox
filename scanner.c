@@ -176,7 +176,7 @@ static Token string() {
 
 Token scanToken() {
     skipWhitespace();
-    scanner.start = scanner.current;
+    scanner.start = scanner.current; // reset starting pos
 
     if (isAtEnd()) return makeToken(TOKEN_EOF);
 
