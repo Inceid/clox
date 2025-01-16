@@ -19,29 +19,49 @@ static Obj* allocateObject(size_t size, ObjType type) {
     return object;
 }
 
-ObjString* allocateString(char* chars, int length) {
+ObjString* allocateString(char* chars, int length,
+                          uint32_t hash) {
     // Given a char array, allocate a string object and return a pointer to it
     ObjString* string = ALLOCATE(ObjString, 1);
     string->length = length;
     string->chars = chars;
+    string->hash = hash;
+    tableSet(&vm.strings, string, NIL_VAL); // intern the new string
     return string;
 }
 
+static uint32_t hashString(const char* key, int length) {
+    // FNV-1a hash algorithm
+    uint32_t hash = 2166136261u;
+    for (int i = 0; i < length; i++) {
+        hash ^= key[i];
+        hash *= 16777619;
+    }
+    return hash;
+}
+
 ObjString* takeString(char* chars, int length) {
-    return allocateString(chars, length);
+    uint32_t hash = hashString(chars, length);
+    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+    if (interned != NULL) { // If interned, free input string; return intern
+        FREE_ARRAY(char, chars, length + 1);
+        return interned;
+    }
+    return allocateString(chars, length, hash);
 }
 
 ObjString* copyString(const char* chars, int length) {
     // create a copy of the string on the heap
+    uint32_t hash = hashString(chars, length);
+    
+    // If the string is already interned, return the interned version
+    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+    if (interned != NULL) return interned;
+
     char* heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0';
-
-    ObjString* string = ALLOCATE(ObjString, 1);
-    string->length = length;
-    string->chars = heapChars;
-
-    return string;
+    return allocateString(heapChars, length, hash);
 }
 
 void printObject(Value value) {

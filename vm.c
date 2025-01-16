@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "debug.h"
 #include "object.h"
+#include "table.h"
 #include "memory.h"
 #include "vm.h"
 
@@ -31,10 +32,12 @@ static void runtimeError(const char* format, ...) {
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    initTable(&vm.strings); // table of string interns
 }
 
 void freeVM() {
     freeObjects();
+    freeTable(&vm.strings);
 }
 
 void push(Value value) {
