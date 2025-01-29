@@ -4,6 +4,8 @@
         "debug.h": "c",
         "compare": "c",
         "type_traits": "c",
-        "value.h": "c"
+        "value.h": "c",
+        "table.h": "c",
+        "surajutil.h": "c"
     }
 }

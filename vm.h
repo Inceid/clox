@@ -11,7 +11,8 @@ typedef struct {
     Chunk* chunk;
     uint8_t* ip; // instruction pointer - loc of next instruction to execute
     Value stack[STACK_MAX];
-    Value* stackTop;
+    Value* stackTop; 
+    Table globals;
     Table strings; 
     Obj* objects; // pointer to head of linked list of objects
 } VM;

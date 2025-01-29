@@ -1,10 +1,13 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "memory.h"
 #include "object.h"
 #include "table.h"
 #include "value.h"
+
+#include "../surajutil.h"
 
 #define TABLE_MAX_LOAD 0.75
 
@@ -82,7 +85,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
     }
 
     Entry* entry = findEntry(table->entries, table->capacity, key);
-    bool isNewKey = (entry->key = NULL);
+    bool isNewKey = (entry->key == NULL);
     if (isNewKey && IS_NIL(entry->value)) table->count++; // null key & not tombstone
 
     entry->key = key;
@@ -117,6 +120,14 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash) {
     if (table->count == 0) return NULL;
     uint32_t index = hash % table->capacity;
+
+    #ifdef DEBUG_TRACE_EXECUTION
+        char* sub = substr(chars, 0, length);
+        printf("in tableFindString:\n");
+        printf("\tfinding <%s> index: <%d>;\n", sub, index);
+        free(sub);
+    #endif
+    
     for (;;) {
         Entry* entry = &table->entries[index];
         if (entry->key == NULL) {
@@ -127,5 +138,21 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
             return entry->key; // Found matching string
         }
         index = (index + 1) % table->capacity;
+    }
+}
+
+void printTable(Table* table, const char* name) {
+    // print contents of a hash table
+    printf("%s ", name);
+    for (int i = 0; i < table->capacity; i++) {
+        Entry* entry = &table->entries[i];
+        if (entry->key != NULL) {
+            printf("[%d] %s -> ", i, entry->key->chars);
+            printValue(entry->value);
+            printf("\n");
+        }
+        else {
+            printf("[%d] <empty> \n", i);
+        }
     }
 }
