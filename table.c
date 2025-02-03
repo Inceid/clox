@@ -120,13 +120,6 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash) {
     if (table->count == 0) return NULL;
     uint32_t index = hash % table->capacity;
-
-    #ifdef DEBUG_TRACE_EXECUTION
-        char* sub = substr(chars, 0, length);
-        printf("in tableFindString:\n");
-        printf("\tfinding <%s> index: <%d>;\n", sub, index);
-        free(sub);
-    #endif
     
     for (;;) {
         Entry* entry = &table->entries[index];
