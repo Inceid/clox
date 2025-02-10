@@ -55,14 +55,15 @@ ObjNative* newNative(NativeFn function) {
     return native;
 }
 
-ObjString* allocateString(char* chars, int length,
-                          uint32_t hash) {
+ObjString* allocateString(char* chars, int length, uint32_t hash) {
     // Given a char array, allocate a string object and return a pointer to it
     ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
     string->length = length;
     string->chars = chars;
     string->hash = hash;
+    push(OBJ_VAL(string)); // push onto stack to protect from GC
     tableSet(&vm.strings, string, NIL_VAL); // intern as chars -> NIL pair
+    pop();
     return string;
 }
 
