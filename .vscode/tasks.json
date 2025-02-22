@@ -29,7 +29,7 @@
             "command": "sh",
             "args": [
                 "-c",
-                "gcc -o main *.c ../surajutil.c && echo 'success'"
+                "gcc -o main *.c && echo 'success'"
             ],
             "group": {
                 "kind": "build",
