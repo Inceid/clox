@@ -36,18 +36,18 @@ void markObject(Obj* object) {
     if (object == NULL) return;
     if (object->isMarked) return;
     #ifdef DEBUG_LOG_GC 
-        printf("%p mark ", (void*)object);
+        printf("%p mark\n", (void*)object);
         printValue(OBJ_VAL(object));
-        printf("\n");
     #endif
-    object->isMarked = true;
 
+    object->isMarked = true;
     if (vm.grayCapacity < vm.grayCount + 1) {
         vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
         vm.grayStack = (Obj**)realloc(vm.grayStack, 
                                       sizeof(Obj*) * vm.grayCapacity);
         if (vm.grayStack == NULL) exit(1);
     }
+    
     vm.grayStack[vm.grayCount++] = object;
 }
 
@@ -80,17 +80,20 @@ static void blackenObject(Obj* object) {
             markTable(&klass->methods);
             break;
         }
-        case OBJ_CLOSURE: 
+        case OBJ_CLOSURE: {
             ObjClosure* closure = (ObjClosure*)object; 
             markObject((Obj*)closure->function);
             for (int i = 0; i < closure->upvalueCount; i++) {
                 markObject((Obj*)closure->upvalues[i]);
             }
             break;
-        case OBJ_FUNCTION: 
+        }
+        case OBJ_FUNCTION: {
             ObjFunction* function = (ObjFunction*)object; 
             markObject((Obj*)function->name);
             markArray(&function->chunk.constants);
+            break;
+        }
         case OBJ_UPVALUE: 
             markValue(((ObjUpvalue*)object)->closed);
             break;

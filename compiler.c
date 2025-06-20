@@ -200,12 +200,15 @@ static void patchJump(int offset) {
 
 static void initCompiler(Compiler* compiler, FunctionType type) {
     // initialize compiler's current function & global scope
+    printf("initCompiler\n");
     compiler->enclosing = current; 
     compiler->function = NULL; 
     compiler->type = type; 
     compiler->localCount = 0; 
     compiler->scopeDepth = 0; 
+    printf("    compiler->function: %p\n", (void*)compiler->function);
     compiler->function = newFunction(); 
+    printf("    compiler->function: %p\n", (void*)compiler->function);
     current = compiler; 
     if (type != TYPE_SCRIPT) { // then function name was just parsed; grab it
         current->function->name = copyString(parser.previous.start,
@@ -948,14 +951,19 @@ ObjFunction* compile(const char* source) {
         declaration();
     }
 
+    printf("now we are ending compiler...\n");
     ObjFunction* function = endCompiler();
+    printf("done!\n");
     return parser.hadError ? NULL : function;
 }
 
 void markCompilerRoots() {
     Compiler* compiler = current; 
+    printf("compiler: %p\n", compiler);
     while (compiler != NULL) {
+        printf("compiler->function: %p\n", compiler->function->name);
         markObject((Obj*)compiler->function);
+        printf("compiler->enclosing: %p\n", compiler->enclosing);
         compiler = compiler->enclosing;
     }
 }
