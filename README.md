@@ -42,7 +42,8 @@ make
 
 Debug flags: users can build `clox` with several optional flags to aid codetracing:
 ```bash
-make DEBUG_FLAGS="-DDEBUG_TRACE_EXECUTION -DDEBUG_PRINT_CODE"
+make DEBUG_FLAGS="-DDEBUG_TRACE_EXECUTION -DDEBUG_PRINT_CODE -DDEBUG_STRESS_GC -DDEBUG_LOG_GC
+"
 ```
 
 Current features:
