@@ -23,7 +23,7 @@ void freeTable(Table* table) {
 
 static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
-    uint32_t index = key->hash % capacity;
+    uint32_t index = key->hash & (capacity - 1);
     Entry* tombstone = NULL; // Track tombstone entries
     for (;;) {
         Entry* entry = &entries[index];
@@ -38,7 +38,7 @@ static Entry* findEntry(Entry* entries, int capacity,
             // We found the key
             return entry;
         }
-        index = (index + 1) % capacity; // Linearly probe onwards
+        index = (index + 1) & (capacity - 1); // Linearly probe onwards
     }
 }
 
@@ -117,7 +117,7 @@ void tableAddAll(Table* from, Table* to) {
 ObjString* tableFindString(Table* table, const char* chars, int length, 
                            uint32_t hash) {
     if (table->count == 0) return NULL;
-    uint32_t index = hash % table->capacity;
+    uint32_t index = hash & (table->capacity - 1);
     
     for (;;) {
         Entry* entry = &table->entries[index];
@@ -128,7 +128,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
                    memcmp(entry->key->chars, chars, length) == 0) {
             return entry->key; // Found matching string
         }
-        index = (index + 1) % table->capacity;
+        index = (index + 1) & (table->capacity - 1);
     }
 }
 

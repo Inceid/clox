@@ -200,15 +200,12 @@ static void patchJump(int offset) {
 
 static void initCompiler(Compiler* compiler, FunctionType type) {
     // initialize compiler's current function & global scope
-    printf("initCompiler\n");
     compiler->enclosing = current; 
     compiler->function = NULL; 
     compiler->type = type; 
     compiler->localCount = 0; 
     compiler->scopeDepth = 0; 
-    printf("    compiler->function: %p\n", (void*)compiler->function);
     compiler->function = newFunction(); 
-    printf("    compiler->function: %p\n", (void*)compiler->function);
     current = compiler; 
     if (type != TYPE_SCRIPT) { // then function name was just parsed; grab it
         current->function->name = copyString(parser.previous.start,
@@ -370,6 +367,7 @@ static void declareVariable() {
 // Expression compilation code
 
 static void binary(bool canAssign) {
+    (void)canAssign;
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
     // recursively parse higher prec ops
@@ -406,6 +404,7 @@ static uint8_t argumentList() {
 }
 
 static void call(bool canAssign) {
+    (void)canAssign;
     uint8_t argCount = argumentList();
     emitBytes(OP_CALL, argCount);
 }
@@ -428,6 +427,7 @@ static void dot(bool canAssign) {
 }
 
 static void literal(bool canAssign) {
+    (void)canAssign;
     switch (parser.previous.type) {
         case TOKEN_FALSE: emitByte(OP_FALSE); break;
         case TOKEN_NIL: emitByte(OP_NIL); break;
@@ -437,16 +437,19 @@ static void literal(bool canAssign) {
 }
 
 static void grouping(bool canAssign) {
+    (void)canAssign;
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 static void number(bool canAssign) {
+    (void)canAssign;
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
 }
 
 static void and_(bool canAssign) {
+    (void)canAssign;
     int endJump = emitJump(OP_JUMP_IF_FALSE); // jump if left operand is falsey
 
     emitByte(OP_POP);
@@ -456,6 +459,7 @@ static void and_(bool canAssign) {
 }
 
 static void or_(bool canAssign) {
+    (void)canAssign;
     int elseJump = emitJump(OP_JUMP_IF_FALSE); // jump to right operand
     int endJump = emitJump(OP_JUMP); // jump to end if left operand is truthy
 
@@ -467,6 +471,7 @@ static void or_(bool canAssign) {
 }
 
 static void string(bool canAssign) {
+    (void)canAssign;
     // emit string literal, trim quotation marks
     emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, 
                                     parser.previous.length - 2)));
@@ -507,6 +512,7 @@ static Token syntheticToken(const char* text) {
 }
 
 static void super_(bool canAssign) {
+    (void)canAssign;
     if (currentClass == NULL) {
         error("Can't use 'super' outside of a class.");
     } else if (!currentClass->hasSuperclass) {
@@ -520,14 +526,17 @@ static void super_(bool canAssign) {
     namedVariable(syntheticToken("this"), false); // look up receiver 
     if (match(TOKEN_LEFT_PAREN)) {
         uint8_t argCount = argumentList();
+        namedVariable(syntheticToken("super"), false);
         emitBytes(OP_SUPER_INVOKE, name); // combine OP_GET_SUPER and OP_CALL
         emitByte(argCount);
     } else {
+        namedVariable(syntheticToken("super"), false);
         emitBytes(OP_GET_SUPER, name);
     }
 }
 
 static void this_(bool canAssign) {
+    (void)canAssign;
     if (currentClass == NULL) {
         error("Can't use 'this' outside of a class.");
     }
@@ -535,6 +544,7 @@ static void this_(bool canAssign) {
 }
 
 static void unary(bool canAssign) {
+    (void)canAssign;
     TokenType operatorType = parser.previous.type;
 
     // Compile the operand.
@@ -722,14 +732,14 @@ static void classDeclaration() {
             error("A class can't inherit from itself.");
         }
 
+        beginScope(); // "super" scope is scope of class decl
+        addLocal(syntheticToken("super"));
+        defineVariable(0); // store superclass in local 0
+
         namedVariable(className, false); // load subclass
         emitByte(OP_INHERIT); 
         classCompiler.hasSuperclass = true; 
     }
-
-    beginScope(); // "super" scope is scope of class decl
-    addLocal(syntheticToken("super"));
-    defineVariable(0); // store superclass in local 0
 
     namedVariable(className, false);
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
@@ -951,19 +961,14 @@ ObjFunction* compile(const char* source) {
         declaration();
     }
 
-    printf("now we are ending compiler...\n");
     ObjFunction* function = endCompiler();
-    printf("done!\n");
     return parser.hadError ? NULL : function;
 }
 
 void markCompilerRoots() {
     Compiler* compiler = current; 
-    printf("compiler: %p\n", compiler);
     while (compiler != NULL) {
-        printf("compiler->function: %p\n", compiler->function->name);
         markObject((Obj*)compiler->function);
-        printf("compiler->enclosing: %p\n", compiler->enclosing);
         compiler = compiler->enclosing;
     }
 }

@@ -29,7 +29,7 @@
             "command": "sh",
             "args": [
                 "-c",
-                "gcc -o main *.c && echo 'success'"
+                "gcc -o lox *.c && echo 'success'"
             ],
             "group": {
                 "kind": "build",
@@ -42,7 +42,7 @@
             "command": "sh",
             "args": [
                 "-c",
-                "gcc -o main *.c | grep -v '^debug\\.c$' ../surajutil.c && echo 'success'"
+                "gcc -o lox *.c | grep -v '^debug\\.c$' ../surajutil.c && echo 'success'"
             ],
             "group": {
                 "kind": "build",

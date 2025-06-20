@@ -6,6 +6,7 @@
         "type_traits": "c",
         "value.h": "c",
         "table.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "stdio.h": "c"
     }
 }

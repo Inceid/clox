@@ -1,22 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
 #include "vm.h"
 
-static void repl() {
-    char line[1024];
-    for (;;) {
-        printf(">>> ");
-
-        if (!fgets(line, sizeof(line), stdin)) {
+void repl() {
+    while (true) {
+        char* line = readline("\033[38;2;250;128;114m🥯 lox → \033[0m");
+        if (line == NULL) {
             printf("\n");
             break;
         }
+
+        if (*line != '\0') {
+            add_history(line);
+        }
+
         interpret(line);
+        free(line);
     }
 }
 
